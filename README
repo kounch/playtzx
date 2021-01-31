@@ -11,9 +11,9 @@ write better one some day. :)
 Compiling
 ---------
 
-Makefile is pretty straightforward. And it works in my case. :)
-It should compile with (x86?) Linux-systems with Open Sound System things,
-which is some kind of standard in Linux.
+aclocal && autoconf && autoheader && automake --add-missing
+./configure
+make
 
 Usage
 -----
@@ -71,6 +71,3 @@ Any feedback on this PlayTZX for Linux is welcome. My email address is
 turtiain@iki.fi
 
 And you can get this PlayTZX on http://www.iki.fi/turtiain/playtzx.html
-
-
-

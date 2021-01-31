@@ -1,7 +1,7 @@
 /*
- * PlayTZX for Mac OS X and Linux
+ * PlayTZX for MacOS and Linux
  *
- * version 0.1beta
+ * version 0.12 beta
  *
  * Based very heavily on original PlayTZX v 0.56b source by Tomaz Kac
  * His original comment below...
@@ -1347,7 +1347,7 @@ main(int argc, char *argv[])
     if (voc)
       printf("\nCreating .VOC file using %d Hz frequency.\n\n", freq);
     else
-      printf("\nStarting playback on CoreAudio using %d Hz frequency.\n\n", freq);
+      printf("\nStarting playback using %d Hz frequency.\n\n", freq);
   } else
     printf("\n");
 
