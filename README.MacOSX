@@ -8,9 +8,13 @@ Kac's version 0.59b.
 Compiling
 ---------
 
-The PowerBuilder project is found in the playtzx subdirectory.
+With command line developer tools installed, run
 
-Alternatively you can just use the binary in playtzx/build/playtzx
+aclocal && autoconf && autoheader && automake --add-missing
+./configure
+make
+
+Use the new playtzx file
 
 Bugs
 ----

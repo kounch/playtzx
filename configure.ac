@@ -1,10 +1,36 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(playtzx.c)
+AC_INIT(playtzx, 0.12b)
+AC_CONFIG_SRCDIR(playtzx.c)
 AM_CONFIG_HEADER(config.h)
 
 dnl Use automake to produce `Makefile.in'
-AM_INIT_AUTOMAKE(playtzx, 0.11)
+AM_INIT_AUTOMAKE
+
+# Get flags
+AC_CANONICAL_HOST
+AC_MSG_CHECKING(for audio API)
+case $host in
+  *-apple*)
+  # Look for Core flag
+  AC_ARG_WITH(core, [  --with-core = choose CoreAudio API support (MAC OSX only)], [
+    api="$api -D__MACOSX_CORE__"
+    AC_MSG_RESULT(using CoreAudio)
+    AC_CHECK_HEADER(CoreAudio/CoreAudio.h, [], [AC_MSG_ERROR(CoreAudio header files not found!)] )
+    LIBS="$LIBS -framework CoreAudio" ], )
+
+  # If no audio api flags specified, use CoreAudio
+  if [test "$api" == ""; ] then
+    AC_SUBST( api, [-D__MACOSX_CORE__] )
+    AC_MSG_RESULT(using CoreAudio)
+    AC_CHECK_HEADER(CoreAudio/CoreAudio.h,
+      [],
+      [AC_MSG_ERROR(CoreAudio header files not found!)] )
+    LIBS="$LIBS -framework CoreAudio"
+  fi
+
+  ;;
+esac
 
 dnl Checks for programs.
 AC_PROG_CC
