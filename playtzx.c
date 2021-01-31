@@ -1,5 +1,5 @@
 /*
- * PlayTZX for Mac OS X
+ * PlayTZX for Mac OS X and Linux
  *
  * version 0.1beta
  *
@@ -43,6 +43,11 @@
 #define STT_0_HALF      426	/* Standard Turbo Tape BIT 0 Half Wave */
 #define STT_1_HALF      596	/* Standard Turbo Tape BIT 1 Half Wave */
 
+#define ARR_BLOCK_LEN    204800
+#ifdef __Darwin__
+  #define ARR_BLOCK_LEN    2048
+#endif
+
 void 
 Error(char *errstr)
 {
@@ -65,7 +70,7 @@ unsigned char *mem;		/* File in Memory */
 int pos;			/* Position in File */
 int curr;			/* Current block that is playing */
 int numblocks;			/* Total Num. of blocks */
-int block[2048];		/* Array of Block starts */
+int block[ARR_BLOCK_LEN];		/* Array of Block starts */
 double cycle;			/* Freq/3500000 */
 
 char *sbbuf[2];			/* SB Buffers */
@@ -1020,7 +1025,11 @@ PlayC64TurboByte(char byte)
 int 
 main(int argc, char *argv[])
 {
+#ifdef __Darwin__
   printf("\nZXTape Utilities - Play TZX , TZX to VOC Converter and TZX Info v0.12b for Mac OS X\n");
+#elif defined(__linux__)
+  printf("\nZXTape Utilities - Play TZX , TZX to VOC Converter and TZX Info v0.12b for Linux\n");
+#endif
   if (argc < 2) {
     printf("\nUsage: playtzx [switches] file.tzx [output.voc|output.au]\n\n");
     printf("       Switches:  -voc      Create a .VOC file instead of audio output\n");

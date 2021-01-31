@@ -3,24 +3,36 @@
  */
 
 #include <stdio.h>
-
 #include <unistd.h>
-#include <CoreAudio/AudioHardware.h>
+
+#ifdef __Darwin__
+  #include <CoreAudio/AudioHardware.h>
+#elif defined(__linux__)
+  #include <sys/ioctl.h>
+  #include <stdlib.h>
+  #include <fcntl.h>
+  #include <sys/soundcard.h>
+#endif
 
 #include "audio.h"
 
 /* Mandatory variables */
+#ifdef __Darwin__
+  static AudioDeviceID device;     /* the default device */
+  static UInt32 deviceBufferSize;  /* bufferSize returned by kAudioDevicePropertyBufferSize */
+  static AudioStreamBasicDescription	deviceFormat;	/* info about the default device */
+  
+  #define MAX_AUDIO_RB 22050
+  float ringbuf[MAX_AUDIO_RB];
+  
+  volatile unsigned int ringbuffer_read = 0;
+  volatile unsigned int ringbuffer_write = 0;
+#elif defined(__linux__)
+  #define DEVICE_NAME "/dev/dsp"
+  int audio_fd;
+#endif
 
-static AudioDeviceID device;     /* the default device */
-static UInt32 deviceBufferSize;  /* bufferSize returned by kAudioDevicePropertyBufferSize */
-static AudioStreamBasicDescription	deviceFormat;	/* info about the default device */
-
-#define MAX_AUDIO_RB 22050
-float ringbuf[MAX_AUDIO_RB];
-
-volatile unsigned int ringbuffer_read = 0;
-volatile unsigned int ringbuffer_write = 0;
-
+#ifdef __Darwin__
 void 
 play_buffer(register unsigned char *buf, register int count)
 {
@@ -73,11 +85,26 @@ OSStatus appIOProc ( AudioDeviceID inDevice, const AudioTimeStamp* inNow,
   return kAudioHardwareNoError;
 }
 
+#elif defined(__linux__)
+void play_buffer (unsigned char *buf, int count)
+{
+  /* then make some noise! */
+  int len;
+
+  if ((len = write (audio_fd, buf, count)) == -1)
+    {
+      perror ("audio write");
+      exit (1);
+    }
+}
+#endif
+
 /* note, freq is changed! */
 
 int 
 open_audio(int *freq)
 {
+#ifdef __Darwin__
   OSStatus  err = kAudioHardwareNoError;
   UInt32    count;    
   device    = kAudioDeviceUnknown;
@@ -144,11 +171,96 @@ open_audio(int *freq)
   if (err != kAudioHardwareNoError) return -1;
 
   return 0;
+#elif defined(__linux__)
+  int format;
+  int stereo;
+  int speed;
+
+  /* Open the audio device thingy */
+
+  if ((audio_fd = open (DEVICE_NAME, O_WRONLY, 0)) == -1)
+    {
+      /* Opening device failed */
+      perror (DEVICE_NAME);
+      exit (1);
+    }
+
+  /*
+   * set the audio parameters 
+   */
+
+
+  /* First the audio format */
+
+  format = AFMT_U8;
+  if (ioctl (audio_fd, SNDCTL_DSP_SETFMT, &format) == -1)
+    {
+      /* Fatal error */
+      perror ("SNDCTL_DSP_SETFMT");
+      exit (1);
+    }
+
+  if (format != AFMT_U8)
+    {
+      /* The device doesn't support the requested audio format. The program  
+         should use another format (for example the one returned in "format") 
+         or alternatively it must display an error message and to abort. */
+
+      /* if the device does not support AFMT_U8 then it can **** ***! :) */
+
+      puts ("bloody hell!");
+      exit (1);
+    }
+
+  /* then number of channels */
+
+  stereo = 0;			/* 0=mono, 1=stereo */
+
+  if (ioctl (audio_fd, SNDCTL_DSP_STEREO, &stereo) == -1)
+    {
+      /* Fatal error */
+      perror ("SNDCTL_DSP_STEREO");
+      exit (1);
+    }
+
+  if (stereo != 0)
+    {
+      /* The device doesn't support stereo mode. */
+
+      /* which is quite unbelievable! */
+
+      puts ("holy smoke!");
+      exit (1);
+    }
+
+  /* and finally, sampling speed */
+
+  speed = *freq;
+
+  if (ioctl (audio_fd, SNDCTL_DSP_SPEED, &speed) == -1)
+    {
+      /* Fatal error */
+      perror ("SNDCTL_DSP_SPEED");
+      exit (1);
+    }
+
+  if (speed != *freq)
+    {
+      /* The device doesn't support the requested speed. */
+
+      printf ("using speed of %d instead of %d\n", speed, *freq);
+    }
+
+  *freq = speed;
+
+  return (audio_fd);
+#endif
 }
 
 void 
 close_audio()
 {
+#ifdef __Darwin__
   OSStatus err = kAudioHardwareNoError;
 
   finishing = 1;
@@ -162,4 +274,7 @@ close_audio()
 
   err = AudioDeviceRemoveIOProc(device, appIOProc);     /* remove the IO proc from the device */
   if (err != kAudioHardwareNoError) return;
+#elif defined(__linux__)
+  close (audio_fd);
+#endif
 }
