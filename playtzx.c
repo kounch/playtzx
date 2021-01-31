@@ -44,7 +44,7 @@
 #define STT_1_HALF      596	/* Standard Turbo Tape BIT 1 Half Wave */
 
 #define ARR_BLOCK_LEN    204800
-#ifdef __Darwin__
+#ifdef __APPLE__
   #define ARR_BLOCK_LEN    2048
 #endif
 
@@ -1025,7 +1025,7 @@ PlayC64TurboByte(char byte)
 int 
 main(int argc, char *argv[])
 {
-#ifdef __Darwin__
+#ifdef __APPLE__
   printf("\nZXTape Utilities - Play TZX , TZX to VOC Converter and TZX Info v0.12b for Mac OS X\n");
 #elif defined(__linux__)
   printf("\nZXTape Utilities - Play TZX , TZX to VOC Converter and TZX Info v0.12b for Linux\n");

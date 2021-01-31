@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#ifdef __Darwin__
+#ifdef __APPLE__
   #include <CoreAudio/AudioHardware.h>
 #elif defined(__linux__)
   #include <sys/ioctl.h>
@@ -17,7 +17,7 @@
 #include "audio.h"
 
 /* Mandatory variables */
-#ifdef __Darwin__
+#ifdef __APPLE__
   static AudioDeviceID device;     /* the default device */
   static UInt32 deviceBufferSize;  /* bufferSize returned by kAudioDevicePropertyBufferSize */
   static AudioStreamBasicDescription	deviceFormat;	/* info about the default device */
@@ -32,7 +32,7 @@
   int audio_fd;
 #endif
 
-#ifdef __Darwin__
+#ifdef __APPLE__
 void 
 play_buffer(register unsigned char *buf, register int count)
 {
@@ -104,7 +104,7 @@ void play_buffer (unsigned char *buf, int count)
 int 
 open_audio(int *freq)
 {
-#ifdef __Darwin__
+#ifdef __APPLE__
   OSStatus  err = kAudioHardwareNoError;
   UInt32    count;    
   device    = kAudioDeviceUnknown;
@@ -260,7 +260,7 @@ open_audio(int *freq)
 void 
 close_audio()
 {
-#ifdef __Darwin__
+#ifdef __APPLE__
   OSStatus err = kAudioHardwareNoError;
 
   finishing = 1;
